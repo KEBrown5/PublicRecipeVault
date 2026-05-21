@@ -1,0 +1,18 @@
+<form id = "email-container" class = "email-div"
+    hx-post = "{% url 'recipes:save_email' %}"
+    hx-target = "this"
+    hx-swap = "outerHTML"
+    hx-select = "#email-container">
+
+    {% csrf_token %}
+    <span>Email:</span>
+    <input type = "email" name = "email" value = "{{ request.user.email }}" required>
+    <button type = "submit" class = "btn">Save</button>
+    <button type = "button" class = "btn"
+        hx-get = "{% url 'recipes:account' %}"
+        hx-target = "#email-container"
+        hx-swap = "outerHTML"
+        hx-select = "#email-container">
+        Cancel
+    </button>
+</form>

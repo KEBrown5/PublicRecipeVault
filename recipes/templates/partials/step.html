@@ -1,0 +1,18 @@
+<div class = "step-row">
+    <div style = "display: none;">
+        {{ form.as_p }}
+    </div>
+
+    <li>
+        {{ form.text.value }}
+
+        <button type = "button" class = "btn btn-danger" hx-on:click = "deleteRow(this.closest('.step-row'))">
+        Remove
+        </button> 
+    </li>
+
+    <input type="hidden" name="steps-TOTAL_FORMS" value="{{ total }}" id="id_steps-TOTAL_FORMS"
+        hx-swap-oob="true">
+
+    <textarea name="steps-__prefix__-text" cols="40" rows="10" id="id_steps-__prefix__-text" hx-swap-oob = "true"></textarea>
+</div>

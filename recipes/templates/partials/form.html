@@ -1,0 +1,41 @@
+<div class = "ingredient-row">
+    <!-- This section holds the input values that were created in the form -->
+    <div style = "display: none;">
+        {{ form.as_p }}
+    </div>
+
+    <!-- This section just displays the values for users to see what they added -->
+    <li>
+        {{ form.quantity.value}} {{form.unit.value}} {{name}}
+
+        <button type = "button" class = "btn btn-danger" hx-on:click = "deleteRow(this.closest('.ingredient-row'))">
+        Remove
+        </button> 
+    </li>
+
+    <!-- These values swap places with the existing ones in the form when created 
+        This one here updates the total count for the recipe ingredient forms so the ORM knows how many to expect-->
+    <input type="hidden" name="RecipeIngredient-TOTAL_FORMS" value="{{ total }}" id="id_RecipeIngredient-TOTAL_FORMS"
+        hx-swap-oob="true">
+
+    <!-- And these swap with the form values to empty them by swapping in blank values, priming them for new user input-->
+    <input type="number" 
+        name="RecipeIngredient-__prefix__-quantity" 
+        placeholder="Quantity"
+        id="id_RecipeIngredient-__prefix__-quantity" 
+        value="" 
+        hx-swap-oob="true">
+
+    <input type="text" 
+        name="RecipeIngredient-__prefix__-unit" 
+        placeholder="unit"
+        id="id_RecipeIngredient-__prefix__-unit" 
+        value="" 
+        hx-swap-oob="true">
+
+    <span class="select2-selection__rendered" 
+        id="select2-id_RecipeIngredient-__prefix__-ingredient-container" 
+        role="textbox" aria-readonly="true" 
+        title="---------"
+        hx-swap-oob = "true">---------</span>
+</div>

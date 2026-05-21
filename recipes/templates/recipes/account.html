@@ -1,0 +1,56 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+    <div class = "row d-flex justify-content-center">
+        <div class = "col-md-6 flex-column">
+            <div class = "card account-card">
+                <div class = "card-body">
+                    <div class = "row d-flex justify-content-between">
+                        <div class = "col-md-4">
+                            <h2>Your Profile</h2>
+                        </div>
+
+                        <div class = "col-md-4 text-end">
+                            <a class = "btn" href = "{% url 'users:logout' %}">Logout</a>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class = "row">
+                        <div>
+                            <span>Logged in as:</span>
+                            {{ request.user.username }}
+                        </div>
+
+                        <div class = "email-div" id = "email-container">
+                            <span>Email:</span>
+                            {{ request.user.email }}
+                            <button type = "button" class = "btn" 
+                                hx-get = "{% url 'recipes:get_email_form' %}" 
+                                hx-target = "#email-container"
+                                hx-swap = "outerHTML">
+                                Edit
+                            </button>
+                        </div>
+
+                        <div class = "password-div" id = "password-container">
+                            <span>Password:</span>
+                            ******************
+                            <button type = "button" class = "btn"
+                                hx-get = "{% url 'recipes:get_password_form' %}"
+                                hx-target = "#password-container"
+                                hx-swap = "outerHTML">
+                                Edit
+                            </button>
+                        </div>
+                        <div>
+                           <span>Account Created:</span> 
+                           {{ request.user.date_joined }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+{% endblock %}

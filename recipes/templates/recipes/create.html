@@ -1,0 +1,153 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+<div class = "container">
+    <form method = "POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class = "row d-flex justify-content-center">
+            <div class = "col-md-8 flex-column">
+                <div class = "card">
+                    <div class = "card-body">
+                        {{ formset.management_form }}
+                        {{ stepset.management_form }}
+                        <!-- First section is title, content, and tags -->
+                        <div class = "row">
+                            <div class = "col-md-12 d-flex flex-column">
+                                {{ form.title.label }}
+                                {{ form.title }}
+                            </div>
+
+                            <div class = "col-md-12 d-flex flex-column mt-3">
+                                {{ form.content.label }}
+                                {{ form.content }}
+                            </div>
+
+                            <div class = "col-md-12 d-flex flex-column mt-3">
+                                {{ form.tags.label }}
+                                {{ form.tags }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <!-- This section is for image and numerical info -->
+                        <div class = "row">
+                            <div class = "col-md-12 d-flex flex-column mt-1">
+                                {{ form.image.label}}
+                                {{ form.image }}
+                            </div>
+
+                            <div class = "col-md-12 d-flex flex-column mt-3">
+                                {{ form.servings.label }}
+                                {{ form.servings }}
+                            </div>
+
+                            <label class = "mt-3">Prep Time:</label>
+                            <div class = "col-md-12 mt-1 time-row">
+                                <!-- <label>Prep Time:</label> -->
+                                {{ form.prep_hours }} hours
+                                {{ form.prep_minutes }} minutes
+                            </div>
+
+                            <label class = "mt-3">Cook Time:</label>
+                            <div class = "col-md-12 mt-1 time-row">
+                                {{ form.cook_hours }} hours
+                                {{ form.cook_minutes }} minutes
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- This section is for adding ingredients and listing them-->
+                        <div class = "mt-1">
+                            <h2>Ingredients</h2> 
+                            <ul id = "ingredient-list"></ul>
+                        </div>
+                        
+                        <div class = "row">
+                            <div class = "col-md-3 flex-column d-flex mt-3">
+                                {{ formset.empty_form.ingredient }}
+                            </div>
+
+                            <div class = "col-md-3 flex-column d-flex mt-3">
+                                {{ formset.empty_form.quantity}}
+                            </div>
+
+                            <div class = "col-md-3 flex-column d-flex mt-3">
+                                {{ formset.empty_form.unit}}
+                            </div>
+
+                            <div class = "col-md-3 flex-column d-flex mt-3">
+                                <button
+                                    type="button"
+                                    class = "btn btn-success"
+                                    hx-post="{% url 'recipes:createIngredientRow' %}"
+                                    hx-target="#ingredient-list"
+                                    hx-swap="beforeend"      
+                                    hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'
+                                    >
+                                    + Add Ingredient
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr> 
+
+                        <div class = "mt-1">
+                            <h2>Steps</h2>
+                            <ul id = "step-list"></ul>
+                        </div>
+
+                        <!-- Final section is for adding and listing steps -->
+                        <div class = "row">
+                            {{ stepset.management_form }}
+
+                            <div class = "col-md-8 mt-3">
+                                {{ stepset.empty_form.text }}
+                            </div>
+
+                            <div class = "col-md-4 mt-3">
+                                <button
+                                    type="button"
+                                    class = "btn btn-success"
+                                    hx-post="{% url 'recipes:createStepRow' %}"
+                                    hx-target="#step-list"
+                                    hx-swap="beforeend"      
+                                    hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'
+                                    >
+                                    + Add Step
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class = "mt-3">Save Recipe</button> 
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $("#id_tags").select2()
+
+        $("#id_RecipeIngredient-__prefix__-ingredient").select2({tags: true})
+
+        function deleteRow(row) {
+            let box = row.querySelector('input[type="checkbox"]');
+
+            if (box) {
+                box.checked = true;
+                console.log("Checked: ", box.name)
+            } else {
+                console.log("BOX NOT CHECKED WHYYYY");
+            }
+
+            row.style.display = 'none';
+        }
+    </script>
+{% endblock %}
