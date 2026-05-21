@@ -20,6 +20,10 @@ h1, h2, h3, h4, h5, h6 {
     font-family: Spectral, serif;
 }
 
+.font-h {
+    font-family: Spectral, serif;
+}
+
 .sidebar {
     padding: 10px;
     background-color: var(--lightGreen);
