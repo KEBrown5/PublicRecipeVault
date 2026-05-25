@@ -16,7 +16,6 @@
                 </div>
                 <div class = "col-md-10">
                     <div class = "card-body">
-                        <!-- <h5 class = "card-title">{{ recipe.title }}</h5> -->
                         <a class = "font-h title-link" href = "{% url 'recipes:recipeDetails' recipe.recipeID %}">{{ recipe.title }}</a>
                         <p class = "card-text">{{recipe.getDescription}}</p>
                         <p class = "card-text"><small class = "text-body-secondary">{{recipe.createdAt}}</small></p>
@@ -24,6 +23,5 @@
                 </div>
             </div>
         </div>
-
     {% endfor %}
 {% endblock %}
