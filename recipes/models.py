@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import re
+from django.db.models import Max
 
 # Create your models here.
 class Recipes(models.Model):
@@ -93,4 +94,11 @@ class InstructionStep(models.Model):
 
     class Meta:
         ordering = ['step_number']
+
+    def save(self, *args, **kwargs):
+        if not self.step_number:
+            current_max = InstructionStep.objects.filter(recipe=self.recipe).aggregate(Max('step_number'))['step_number__max']
+            self.step_number = (current_max or 0) + 1
+
+        super().save(*args, **kwargs)
 

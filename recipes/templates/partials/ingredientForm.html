@@ -1,0 +1,17 @@
+<div class = "ingredient-row mt-1">
+    <div class = "row">
+        <div class = "col-md-2">
+            {{ ingForm.quantity }}
+        </div>
+        <div class = "col-md-2">
+            {{ ingForm.unit }}
+        </div>
+        <div class = "col-md-6">
+            {{ ingForm.ingredient }} 
+        </div>
+        <div class = "col-md-2">
+            <button type = "button" class = "btn btn-danger" hx-on:click = "this.closest('.ingredient-row').remove()">Remove</button>
+        </div>
+    </div>
+</div>       
+

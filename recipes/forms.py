@@ -55,30 +55,15 @@ class RecipeIngredientForm(forms.ModelForm):
         model = RecipeIngredient
         fields = ['ingredient', 'quantity', 'unit']
         widgets = {
-            'quantity': forms.NumberInput(attrs = {'placeholder': 'Quantity', 'min': '0'}),
-            'unit': forms.TextInput(attrs = {'placeholder': 'Unit'})
+            'quantity': forms.NumberInput(attrs = {'class': 'form-control', 'placeholder': 'Quantity', 'min': '0'}),
+            'unit': forms.TextInput(attrs = {'class': 'form-control', 'placeholder': 'Unit'}),
+            'ingredient': forms.Select(attrs = {'class': 'select2-ingredient', 'id': ''})
         }
 
 class RecipeStepForm(forms.ModelForm):
     class Meta:
         model = InstructionStep
-        fields = ['step_number', 'text']
+        fields = ['text']
         widgets = {
-            'text': forms.Textarea(attrs = {'rows': '2', 'placeholder': 'Input step here'})
+            'text': forms.Textarea(attrs = {'rows': '2', 'placeholder': 'Input step here', 'name': 'step_text'})
         }
-        
-IngredientFormSet = inlineformset_factory(
-    Recipes, # parent model
-    RecipeIngredient, # model which has foreign key to the parent model
-    form = RecipeIngredientForm, # defines the model form
-    extra = 0, # Lists the number of forms that will be displayed
-    can_delete = True
-)
-
-InstructionStepFormSet = inlineformset_factory(
-    Recipes,
-    InstructionStep,
-    form = RecipeStepForm,
-    extra = 0,
-    can_delete = True
-)

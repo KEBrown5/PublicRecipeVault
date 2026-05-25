@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Recipes, Tag, Ingredient
-from .forms import RecipeForm,  IngredientFormSet, InstructionStepFormSet
+from .models import Recipes, Tag, Ingredient, InstructionStep, RecipeIngredient
+from .forms import RecipeForm,  RecipeIngredientForm, RecipeStepForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.db.models import IntegerField, Case, When, Value, Max
@@ -48,74 +48,148 @@ def recipeDetails(request, pk):
 def editRecipe(request, pk):
     recipe = get_object_or_404(Recipes, pk = pk)
 
-    if request.method == 'POST':
-        print("POST CALLED")
-        form = RecipeForm(request.POST, request.FILES, instance = recipe)
-        ingredients = IngredientFormSet(request.POST, instance=recipe)
-        steps = InstructionStepFormSet(request.POST, instance=recipe)
+    if request.method == 'GET':
+        form = RecipeForm(instance=recipe, initial = {
+            'prep_hours': recipe.prepTime // 60,
+            'prep_minutes': recipe.prepTime % 60,
+            'cook_hours': recipe.cookTime // 60,
+            'cook_mintues': recipe.cookTime % 60,
+        })
 
-        if form.is_valid() and ingredients.is_valid() and steps.is_valid():
-            form.save()
-            ingredients.save()
+        ing_forms = [RecipeIngredientForm(instance=i) for i in recipe.RecipeIngredient.all()]
+        step_forms = [RecipeStepForm(instance=s) for s in recipe.steps.all()]
 
-            steps.save(commit = False)
-
-            for deleted_step in steps.deleted_objects:
-                    deleted_step.delete()
-                
-            num = 1
-            for step in steps:
-                if not step.cleaned_data or step in steps.deleted_forms:
-                    continue
-                
-                step.instance.step_number = num
-                step.instance.save()
-                num+=1
-
-            print("SAVED FORM")
-
-            response = HttpResponse()
-            response['HX-Redirect'] = reverse('recipes:home')
-            return response
-        else:
-            print("--- VALIDATION FAILED ---")
-            print("Main Form Errors:", form.errors.as_data())
-            print("Main Form Non-Field:", form.non_field_errors())
-            
-            print("Ingredient Errors:", ingredients.errors)
-            print("Ingredient Non-Form:", ingredients.non_form_errors())
-            
-            print("Step Errors:", steps.errors)
-            print("Step Non-Form:", steps.non_form_errors())
-
-            context = {
-                'form': form,
-                'recipe': recipe,
-                'steps': steps,
-                'ingredients': ingredients,
-            }
-
-            return render(request, 'partials/editRecipeTest.html', context)
-        
-    else:
-        print("GET CALLED")
-        form = RecipeForm(instance = recipe)
-        ingredients = IngredientFormSet(instance = recipe)
-        steps = InstructionStepFormSet(instance = recipe)
+        if not ing_forms:
+            ing_forms = [RecipeIngredientForm()]
+        if not step_forms:
+            step_forms = [RecipeStepForm()]
 
         context = {
             'form': form,
-            'recipe': recipe,
-            'steps': steps,
-            'ingredients': ingredients,
+            'ing_forms': ing_forms,
+            'step_forms': step_forms,
+            'recipe': recipe
         }
 
-        return render(request, 'partials/editRecipeTest.html', context)
+        return render(request, 'partials/editRecipe.html', context)
+    else:
+        form = RecipeForm(request.POST, request.FILES, instance = recipe)
+
+        if form.is_valid():
+            with transaction.atomic():
+                updated_recipe = form.save(commit = False)
+                updated_recipe.author = request.user
+                updated_recipe.save()
+                form.save_m2m()
+
+                recipe.steps.all().delete()
+                recipe.RecipeIngredient.all().delete()
+
+                for text in request.POST.getlist('text'):
+                    if text.strip():
+                        InstructionStep.objects.create(recipe = updated_recipe, text = text)
+
+                quantities = request.POST.getlist('quantity')
+                units      = request.POST.getlist('unit')
+                ing_values = request.POST.getlist('ingredient')
+
+                for qty, unit, ing_val in zip(quantities, units, ing_values):
+                    if not ing_val or not qty:
+                        continue
+                    try:
+                        ingredient = Ingredient.objects.get(pk=int(ing_val))
+                    except (ValueError, Ingredient.DoesNotExist):
+                        ingredient = Ingredient.find_name(ing_val)
+
+                    RecipeIngredient.objects.create(
+                        recipe=updated_recipe,
+                        ingredient=ingredient,
+                        quantity=qty,
+                        unit=unit,
+                    )
+            response = HttpResponse()
+            response['HX-Redirect'] = reverse('recipes:recipeDetails', kwargs={'pk': recipe.recipeID})
+            return response
+        
+        context = {
+            'form': form,
+            'ing_forms': [RecipeIngredientForm()],
+            'step_forms': [RecipeStepForm()],
+            'recipe': recipe,
+        }
+
+        return render(request, 'partials/editRecipe.html', context)
+
+    # if request.method == 'POST':
+    #     print("POST CALLED")
+    #     form = RecipeForm(request.POST, request.FILES, instance = recipe)
+    #     ingredients = IngredientFormSet(request.POST, instance=recipe)
+    #     steps = InstructionStepFormSet(request.POST, instance=recipe)
+
+    #     if form.is_valid() and ingredients.is_valid() and steps.is_valid():
+    #         form.save()
+    #         ingredients.save()
+
+    #         steps.save(commit = False)
+
+    #         for deleted_step in steps.deleted_objects:
+    #                 deleted_step.delete()
+                
+    #         num = 1
+    #         for step in steps:
+    #             if not step.cleaned_data or step in steps.deleted_forms:
+    #                 continue
+                
+    #             step.instance.step_number = num
+    #             step.instance.save()
+    #             num+=1
+
+    #         print("SAVED FORM")
+
+    #         response = HttpResponse()
+    #         response['HX-Redirect'] = reverse('recipes:home')
+    #         return response
+    #     else:
+    #         print("--- VALIDATION FAILED ---")
+    #         print("Main Form Errors:", form.errors.as_data())
+    #         print("Main Form Non-Field:", form.non_field_errors())
+            
+    #         print("Ingredient Errors:", ingredients.errors)
+    #         print("Ingredient Non-Form:", ingredients.non_form_errors())
+            
+    #         print("Step Errors:", steps.errors)
+    #         print("Step Non-Form:", steps.non_form_errors())
+
+    #         context = {
+    #             'form': form,
+    #             'recipe': recipe,
+    #             'steps': steps,
+    #             'ingredients': ingredients,
+    #         }
+
+    #         return render(request, 'partials/editRecipeTest.html', context)
+        
+    # else:
+    #     print("GET CALLED")
+    #     form = RecipeForm(instance = recipe)
+    #     ingredients = IngredientFormSet(instance = recipe)
+    #     steps = InstructionStepFormSet(instance = recipe)
+
+    #     context = {
+    #         'form': form,
+    #         'recipe': recipe,
+    #         'steps': steps,
+    #         'ingredients': ingredients,
+    #     }
+
+        # return render(request, 'partials/editRecipeTest.html', context)
+    return render(request, 'partials/editRecipeTest.html')
 
 @login_required(login_url = 'users:login')
 def deleteRecipe(request, pk):
     if request.method == 'POST':
         recipe = get_object_or_404(Recipes, pk=pk)
+
         recipe.delete()
 
         response = HttpResponse()
@@ -131,119 +205,88 @@ def about(request):
 
 @login_required(login_url = 'users:login')
 def createStepRow(request):
-    total = int(request.POST.get('steps-TOTAL_FORMS'))
-    step_number = request.POST.get('steps-__prefix__-step_number')
-    text = request.POST.get('steps-__prefix__-text')
-
-    form = InstructionStepFormSet().empty_form
-
-    form.initial = {
-        'step_number': step_number,
-        'text': text,
-    }
-
-    form.prefix = f'steps-{total}'
-    form.data = {
-        f'{form.prefix}-step_number': step_number,
-        f'{form.prefix}-text': text,
-    }
-
     context = {
-        'form': form,
-        'total': total + 1,
+        'stepForm': RecipeStepForm()
     }
 
-    return render(request, 'partials/step.html', context)
+    return render(request, 'partials/stepForm.html', context)
 
 @login_required(login_url = 'users:login')
 def createIngredientRow(request):  
-    if request.method == 'POST':
-        ingredientID = request.POST.get('RecipeIngredient-__prefix__-ingredient')
-        quantity = request.POST.get('RecipeIngredient-__prefix__-quantity')
-        unit = request.POST.get('RecipeIngredient-__prefix__-unit')
-        total = int(request.POST.get('RecipeIngredient-TOTAL_FORMS', 0))
+    context = {
+        'ingForm': RecipeIngredientForm()
+    }
 
-        # This try/except block is necessary as the drop down in the form uses the ID values of ingredients
-        # to display, as well as pass them. This means that if users use an existing ingredient from the menu,
-        # it will pass an ID. If they create a new ingredient on the spot, it will instead pass the name they created.
-        # If an ID already exists, continue through
-        try:
-            ingredientID = int(ingredientID)
-        # Otherwise if our input is a new string (I.E the key doesn't exist), create a new ingredient
-        except (ValueError, TypeError):
-            if ingredientID and ingredientID.strip():
-                # Call cleaning methods
-                ingredient = Ingredient.find_name(ingredientID)
-                print(f"CREATED NEW INGREDIENT: {ingredient}")
-                ingredientID = ingredient.id
-            else:
-                print("ERROR")
-
-        form = IngredientFormSet().empty_form
-
-        form.initial = {
-            'ingredient': ingredientID,
-            'quantity': quantity,
-            'unit': unit,
-        }
-
-        form.prefix = f'RecipeIngredient-{total}'
-
-        form.data = {
-            f'{form.prefix}-ingredient': ingredientID,
-            f'{form.prefix}-quantity': quantity,
-            f'{form.prefix}-unit': unit,
-        }
-
-        context = {'form': form,
-                'total': total + 1,
-                'name': Ingredient.objects.filter(id=ingredientID).first()}
-        
-        return render(request, 'partials/form.html', context)
+    return render(request, 'partials/ingredientForm.html', context)
 
 @login_required(login_url = 'users:login')
 def create(request):
-    if request.method == 'POST': 
-        print(request.POST)      
-        form = RecipeForm(request.POST, request.FILES)
-        formset = IngredientFormSet(request.POST)
-        stepset = InstructionStepFormSet(request.POST)
+    # Retrieve initial empty form 
+    if request.method == 'GET':
+        form = RecipeForm()
+        ingForm = RecipeIngredientForm()
+        stepForm = RecipeStepForm()
 
-        if form.is_valid() and formset.is_valid() and stepset.is_valid():
+        context = {
+            'form': form,
+            'ingForm': ingForm,
+            'stepForm': stepForm
+        }
+
+        return render(request, 'recipes/create.html', context)
+    else:
+        # If its a post, then save everything
+        form = RecipeForm(request.POST, request.FILES)
+
+        if form.is_valid():
             with transaction.atomic():
-                recipe = form.save(commit = False)
-                recipe.author = request.user
-                recipe.save()
+                new_recipe = form.save(commit = False)
+                new_recipe.author = request.user
+                new_recipe.save()
                 form.save_m2m()
 
-                formset.instance = recipe
-                formset.save()
+                # save steps next    
+                # Field name is 'text' in the form. so grab all the steps with that name and create new InstructionSteps tied to this recipe     
+                for text in request.POST.getlist('text'):
+                    if text.strip():
+                        InstructionStep.objects.create(recipe = new_recipe, text=text)
 
-                stepset.instance = recipe
+                # Same thing here
+                quantities = request.POST.getlist('quantity')
+                units = request.POST.getlist('unit')
+                ing_values = request.POST.getlist('ingredient')
 
-                steps = stepset.save(commit = False)
-                for num, step in enumerate(steps, start = 1):
-                    step.step_number = num
-                    step.save()
+                for qty, unit, ing_val in zip(quantities, units, ing_values):
+                    # Stops us from iterating over potential empty rows
+                    if not ing_val or not qty:
+                        continue
 
-                # stepset.save()
+                    # Check if the ingredient passed was an existing id, or a newly created string by the user
+                    try:
+                        ingredient = Ingredient.objects.get(pk=int(ing_val))
+                    except (ValueError, Ingredient.DoesNotExist):
+                        ingredient = Ingredient.find_name(ing_val)
 
-            return redirect('recipes:home')
-        else:
-            print("Form errors:", form.errors)
-            print("Formset errors:", formset.errors)
-            print("Stepset errors: ", stepset.errors)
-            print("Non-formset errors:", formset.non_form_errors())
-    else:
-        form = RecipeForm()
-        formset = IngredientFormSet()
-        stepset = InstructionStepFormSet()
+                    # Ties the ingredient to our recipe
+                    RecipeIngredient.objects.create(
+                        recipe=new_recipe,
+                        ingredient=ingredient,
+                        quantity=qty,
+                        unit=unit,
+                    )
 
-    context = {'form': form,
-                'formset': formset,
-                'stepset': stepset}
-    
-    return render(request, 'recipes/create.html', context)
+            # Because this form was posted via htmx, we have to also use htmx to redirect users
+            response = HttpResponse()
+            response['HX-Redirect'] = reverse('recipes:recipeDetails', kwargs={'pk': new_recipe.recipeID})
+            return response
+        
+        context = {
+            'form': form,
+            'ingForm': RecipeIngredientForm(),
+            'stepForm': RecipeStepForm(),
+        }
+
+        return render(request, 'recipes/create.html', context)
 
 @login_required
 def get_email_form(request):

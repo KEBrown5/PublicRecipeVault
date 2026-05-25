@@ -2,89 +2,68 @@
 {% load recipe_tags %}
 
 {% block content %}
-{% csrf_token %}
-        <div class = "container-xl" id = "recipe_display">
-            <div class = "row">
-                <div class = "col-md-12 d-flex position-relative justify-content-center align-items-center fs-1 font-h">      
-                    <button type = "submit" class = "btn position-absolute start-0" hx-get="{% url 'recipes:editRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Edit</button>   
-                    <span>{{ recipe.title }}</span>
-                    <button type = "submit" class = "btn position-absolute end-0" hx-post="{% url 'recipes:deleteRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Delete</button>
-                </div>
+    {% csrf_token %}
+    <div class = "container-xl" id = "recipe_display">
+        <div class = "row">
+            <div class = "col-md-12 d-flex position-relative justify-content-center align-items-center fs-1 font-h">      
+                <button type = "submit" class = "btn position-absolute start-0" hx-get="{% url 'recipes:editRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Edit</button>   
+                <span>{{ recipe.title }}</span>
+                <button type = "submit" class = "btn position-absolute end-0" hx-post="{% url 'recipes:deleteRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Delete</button>
             </div>
+        </div>
 
-            <hr>
+        <hr>
 
-            <div class = "row mt-3">
-                <div class = "col-md-5">
-                    {% if recipe.image %}
-                        <img src = "{{ recipe.image.url }}" alt = "{{ recipe.title }}" class = "img-fluid rounded-start">
-                    {% else %}
-                        <p class = "text-center">No Image</p>
-                    {% endif %}
+        <div class = "row mt-3">
+            <div class = "col-md-5">
+                {% if recipe.image %}
+                    <img src = "{{ recipe.image.url }}" alt = "{{ recipe.title }}" class = "img-fluid rounded-start">
+                {% else %}
+                    <p class = "text-center">No Image</p>
+                {% endif %}
 
-                </div>
-                
-                <div class = "col-md-5 d-flex">
-                    <div class = "row align-content-between">
-                        <div class = "col-md-12">
-                            {{ recipe.content }}
-                        </div>
-
-                        <div class = "col-md-12 fs-2">
-                            <div>Servings: {{ recipe.servings }}</div>
-                            <div>Prep Time: {{ recipe.prepTime|time_format }}</div>
-                            <div>Cook Time: {{ recipe.cookTime|time_format }}</div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
-            <hr>
-
-            <div class = "row mt-3">
-                <h2 class = "mb-3">Ingredients</h2>
-                {% for item in recipe.RecipeIngredient.all %}
-                    <div class = "col-md-6">
-                        <ul>
-                            <li>{{ item.quantity }} {{ item.unit}} {{ item.ingredient }}</li>
-                        </ul>
+            <div class = "col-md-5 d-flex">
+                <div class = "row align-content-between">
+                    <div class = "col-md-12">
+                        {{ recipe.content }}
                     </div>
-                {% endfor %}
-            </div>
 
-            <hr>
-
-            <div class = "row">
-                <div class = "col-md-12">
-                    <h2 class = "mb-3">Instructions</h2>
-                    <ul>
-                        {% for step in recipe.steps.all %}
-                            <li class = "m-1">{{ step.step_number }}: {{ step.text }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class = "col-md-12 fs-2">
+                        <div>Servings: {{ recipe.servings }}</div>
+                        <div>Prep Time: {{ recipe.prepTime|time_format }}</div>
+                        <div>Cook Time: {{ recipe.cookTime|time_format }}</div>
+                    </div>
                 </div>
             </div>
         </div>
-{% endblock %}
+        
+        <hr>
 
-{% block scripts %}
-    <script>
-        //$("#id_tags").select2()
+        <div class = "row mt-3">
+            <h2 class = "mb-3">Ingredients</h2>
+            {% for item in recipe.RecipeIngredient.all %}
+                <div class = "col-md-6">
+                    <ul>
+                        <li>{{ item.quantity }} {{ item.unit}} {{ item.ingredient }}</li>
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
 
-        //$("#id_RecipeIngredient-__prefix__-ingredient").select2({tags: true})
+        <hr>
 
-        function deleteRow(row) {
-            let box = row.querySelector('input[type="checkbox"]');
-
-            if (box) {
-                box.checked = true;
-                console.log("Checked: ", box.name)
-            } else {
-                console.log("BOX NOT CHECKED WHYYYY");
-            }
-
-            row.style.display = 'none';
-        }
-    </script>
+        <div class = "row">
+            <div class = "col-md-12">
+                <h2 class = "mb-3">Instructions</h2>
+                <ul>
+                    {% for step in recipe.steps.all %}
+                        <li class = "m-1">{{ step.step_number }}: {{ step.text }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 

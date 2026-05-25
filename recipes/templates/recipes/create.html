@@ -2,15 +2,13 @@
 
 {% block content %}
 <div class = "container">
-    <form method = "POST" enctype="multipart/form-data">
+    <form enctype="multipart/form-data" hx-post="{% url 'recipes:create' %}">
         {% csrf_token %}
 
         <div class = "row d-flex justify-content-center">
             <div class = "col-md-8 flex-column">
                 <div class = "card">
                     <div class = "card-body">
-                        {{ formset.management_form }}
-                        {{ stepset.management_form }}
                         <!-- First section is title, content, and tags -->
                         <div class = "row">
                             <div class = "col-md-12 d-flex flex-column">
@@ -58,31 +56,20 @@
 
                         <hr>
 
-                        <!-- This section is for adding ingredients and listing them-->
-                        <div class = "mt-1">
-                            <!-- <h2>Ingredients</h2>  -->
-                            <p class = "fs-1">Ingredients</p>
-                            <ul id = "ingredient-list"></ul>
-                        </div>
+                        <!-- This section is for adding ingredients and listing them -->
+                        <!-- Contains RecipeIngredientForms -->
+                        <p class = "fs-1">Ingredients</p>
                         
                         <div class = "row">
-                            <div class = "col-md-3 flex-column d-flex mt-3">
-                                {{ formset.empty_form.ingredient }}
-                            </div>
-
-                            <div class = "col-md-3 flex-column d-flex mt-3">
-                                {{ formset.empty_form.quantity}}
-                            </div>
-
-                            <div class = "col-md-3 flex-column d-flex mt-3">
-                                {{ formset.empty_form.unit}}
+                            <div class = "col-md-12" id = "ingredient-list">
+                                {% include 'partials/ingredientForm.html' %}
                             </div>
 
                             <div class = "col-md-3 flex-column d-flex mt-3">
                                 <button
                                     type="button"
                                     class = "btn btn-success"
-                                    hx-post="{% url 'recipes:createIngredientRow' %}"
+                                    hx-get="{% url 'recipes:createIngredientRow' %}"
                                     hx-target="#ingredient-list"
                                     hx-swap="beforeend"      
                                     hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'
@@ -93,26 +80,20 @@
                         </div>
 
                         <hr> 
-
-                        <div class = "mt-1">
-                            <!-- <h2>Steps</h2> -->
-                            <p class = "fs-1">Steps</p>
-                            <ul id = "step-list"></ul>
-                        </div>
+                            
+                        <p class = "fs-1">Steps</p>
 
                         <!-- Final section is for adding and listing steps -->
-                        <div class = "row">
-                            {{ stepset.management_form }}
-
-                            <div class = "col-md-8 mt-3">
-                                {{ stepset.empty_form.text }}
+                        <div class = "row">    
+                            <div class = "col-md-12" id = "step-list">
+                                {% include 'partials/stepForm.html' %}
                             </div>
 
                             <div class = "col-md-4 mt-3">
                                 <button
                                     type="button"
                                     class = "btn btn-success"
-                                    hx-post="{% url 'recipes:createStepRow' %}"
+                                    hx-get="{% url 'recipes:createStepRow' %}"
                                     hx-target="#step-list"
                                     hx-swap="beforeend"      
                                     hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'
@@ -127,7 +108,6 @@
                 </div>
             </div>
         </div>
-
     </form>
 </div>
 
@@ -136,20 +116,14 @@
 {% block scripts %}
     <script>
         $("#id_tags").select2()
-
-        $("#id_RecipeIngredient-__prefix__-ingredient").select2({tags: true})
-
-        function deleteRow(row) {
-            let box = row.querySelector('input[type="checkbox"]');
-
-            if (box) {
-                box.checked = true;
-                console.log("Checked: ", box.name)
-            } else {
-                console.log("BOX NOT CHECKED WHYYYY");
-            }
-
-            row.style.display = 'none';
-        }
+        
+        htmx.onLoad(function(target) {
+            // $(target).find(...) ensures we ONLY search inside the newly added row
+            // instead of scanning the entire document again.
+            $(target).find('.select2-ingredient:not(.select2-hidden-accessible)').select2({
+                tags: true,
+                width: '100%'
+            });
+        });
     </script>
 {% endblock %}

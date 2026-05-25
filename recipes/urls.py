@@ -8,7 +8,6 @@ urlpatterns = [
     path('create/', views.create, name = 'create'),
     path('about/', views.about, name = 'about'),
     path('account/', views.account, name = 'account'),
-    # path('<int:pk>/', views.recipeDetails, name = 'recipeDetails'),
     path('recipes/<int:pk>/', views.recipeDetails, name = 'recipeDetails'),
     path('recipes/<int:pk>/edit', views.editRecipe, name = 'editRecipe'),
     path('createIngredientRow/', views.createIngredientRow, name = 'createIngredientRow'),

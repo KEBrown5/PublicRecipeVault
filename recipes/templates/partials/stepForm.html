@@ -1,0 +1,10 @@
+<div class = "step-row">
+    <div class = "row">
+        <div class = "col-md-9">
+            {{ stepForm.text }}
+        </div>
+        <div class = "col-md-3">
+            <button type = "button" class = "btn btn-danger" hx-on:click = "this.closest('.step-row').remove()">Remove</button>
+        </div>
+    </div>
+</div>
