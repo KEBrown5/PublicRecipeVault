@@ -63,3 +63,12 @@ header {
 .time-row input[type="number"]{
     width: 150px;
 }
+
+.title-link {
+    text-decoration: none;
+    color: black;
+}
+
+.title-link:hover {
+    text-decoration: underline;
+}

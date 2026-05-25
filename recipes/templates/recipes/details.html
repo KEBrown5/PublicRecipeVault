@@ -3,10 +3,12 @@
 
 {% block content %}
 {% csrf_token %}
-        <div class = "container-xl">
+        <div class = "container-xl" id = "recipe_display">
             <div class = "row">
-                <div class = "col-md-12 text-center fs-1 font-h">
-                    {{ recipe.title }}
+                <div class = "col-md-12 d-flex position-relative justify-content-center align-items-center fs-1 font-h">      
+                    <button type = "submit" class = "btn position-absolute start-0" hx-get="{% url 'recipes:editRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Edit</button>   
+                    <span>{{ recipe.title }}</span>
+                    <button type = "submit" class = "btn position-absolute end-0" hx-post="{% url 'recipes:deleteRecipe' recipe.recipeID %}" hx-headers = '{"X-CSRFToken": "{{ csrf_token }}"}'>Delete</button>
                 </div>
             </div>
 
@@ -63,5 +65,26 @@
                 </div>
             </div>
         </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        //$("#id_tags").select2()
+
+        //$("#id_RecipeIngredient-__prefix__-ingredient").select2({tags: true})
+
+        function deleteRow(row) {
+            let box = row.querySelector('input[type="checkbox"]');
+
+            if (box) {
+                box.checked = true;
+                console.log("Checked: ", box.name)
+            } else {
+                console.log("BOX NOT CHECKED WHYYYY");
+            }
+
+            row.style.display = 'none';
+        }
+    </script>
 {% endblock %}
 

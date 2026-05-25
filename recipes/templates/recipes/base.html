@@ -23,8 +23,8 @@
         <!-- Sidebar/header -->   
         <div class="container-fluid p-0">
             <div class = "row d-flex">
-                <div class = "col-md-1 p-0">
-                    <div class = "sidebar sticky-top">
+                <div class = "col-auto p-0">
+                    <div class = "sidebar sticky-top" id = "sidebar">
                         <a id = "/home/" class="sidebar-item" href="{% url 'recipes:home' %}">
                             <i class = "fa-solid fa-house"></i>
                             <span>Home</span>
@@ -47,7 +47,7 @@
                     </div>
                 </div>
 
-                <div class = "col-md-11 p-0">
+                <div class = "col p-0">
                     <!-- Header -->
                     <header class = "d-flex align-items-center justify-content-center font-h">                      
                         <span>The Recipe Vault</span> 

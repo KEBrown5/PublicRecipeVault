@@ -71,7 +71,7 @@ IngredientFormSet = inlineformset_factory(
     Recipes, # parent model
     RecipeIngredient, # model which has foreign key to the parent model
     form = RecipeIngredientForm, # defines the model form
-    extra = 1, # Lists the number of forms that will be displayed
+    extra = 0, # Lists the number of forms that will be displayed
     can_delete = True
 )
 
@@ -79,6 +79,6 @@ InstructionStepFormSet = inlineformset_factory(
     Recipes,
     InstructionStep,
     form = RecipeStepForm,
-    extra = 1,
+    extra = 0,
     can_delete = True
 )

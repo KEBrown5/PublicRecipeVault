@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
 from .models import Recipes, Tag, Ingredient
 from .forms import RecipeForm,  IngredientFormSet, InstructionStepFormSet
 from django.contrib.auth.decorators import login_required
@@ -7,6 +6,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.db.models import IntegerField, Case, When, Value, Max
 from django.db import transaction
 from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.urls import reverse
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -44,23 +45,87 @@ def recipeDetails(request, pk):
     return render(request, 'recipes/details.html', {'recipe': recipe})
 
 @login_required(login_url = 'users:login')
-def editRecipe(request, key):
-    recipe = get_object_or_404(Recipes, pk = key)
+def editRecipe(request, pk):
+    recipe = get_object_or_404(Recipes, pk = pk)
 
     if request.method == 'POST':
+        print("POST CALLED")
         form = RecipeForm(request.POST, request.FILES, instance = recipe)
+        ingredients = IngredientFormSet(request.POST, instance=recipe)
+        steps = InstructionStepFormSet(request.POST, instance=recipe)
 
-        if form.is_valid():
+        if form.is_valid() and ingredients.is_valid() and steps.is_valid():
             form.save()
-            return redirect('recipes:home')
+            ingredients.save()
+
+            steps.save(commit = False)
+
+            for deleted_step in steps.deleted_objects:
+                    deleted_step.delete()
+                
+            num = 1
+            for step in steps:
+                if not step.cleaned_data or step in steps.deleted_forms:
+                    continue
+                
+                step.instance.step_number = num
+                step.instance.save()
+                num+=1
+
+            print("SAVED FORM")
+
+            response = HttpResponse()
+            response['HX-Redirect'] = reverse('recipes:home')
+            return response
+        else:
+            print("--- VALIDATION FAILED ---")
+            print("Main Form Errors:", form.errors.as_data())
+            print("Main Form Non-Field:", form.non_field_errors())
+            
+            print("Ingredient Errors:", ingredients.errors)
+            print("Ingredient Non-Form:", ingredients.non_form_errors())
+            
+            print("Step Errors:", steps.errors)
+            print("Step Non-Form:", steps.non_form_errors())
+
+            context = {
+                'form': form,
+                'recipe': recipe,
+                'steps': steps,
+                'ingredients': ingredients,
+            }
+
+            return render(request, 'partials/editRecipeTest.html', context)
+        
     else:
+        print("GET CALLED")
         form = RecipeForm(instance = recipe)
+        ingredients = IngredientFormSet(instance = recipe)
+        steps = InstructionStepFormSet(instance = recipe)
 
-    return render(request, 'recipes/edit.html', {'form': form})
+        context = {
+            'form': form,
+            'recipe': recipe,
+            'steps': steps,
+            'ingredients': ingredients,
+        }
 
-# @login_required(login_url = 'users:login')
-# def deleteRecipe
+        return render(request, 'partials/editRecipeTest.html', context)
 
+@login_required(login_url = 'users:login')
+def deleteRecipe(request, pk):
+    if request.method == 'POST':
+        recipe = get_object_or_404(Recipes, pk=pk)
+        recipe.delete()
+
+        response = HttpResponse()
+        response['HX-Redirect'] = reverse('recipes:home')
+        return response
+    
+    print("GET DELETE NOT SUPPOSED TO HAPPEN")
+    return render(request, 'recipes/home.html')
+
+@login_required(login_url = 'users:login')
 def about(request):
     return render(request, 'recipes/about.html')
 
@@ -92,48 +157,49 @@ def createStepRow(request):
 
 @login_required(login_url = 'users:login')
 def createIngredientRow(request):  
-    ingredientID = request.POST.get('RecipeIngredient-__prefix__-ingredient')
-    quantity = request.POST.get('RecipeIngredient-__prefix__-quantity')
-    unit = request.POST.get('RecipeIngredient-__prefix__-unit')
-    total = int(request.POST.get('RecipeIngredient-TOTAL_FORMS', 0))
+    if request.method == 'POST':
+        ingredientID = request.POST.get('RecipeIngredient-__prefix__-ingredient')
+        quantity = request.POST.get('RecipeIngredient-__prefix__-quantity')
+        unit = request.POST.get('RecipeIngredient-__prefix__-unit')
+        total = int(request.POST.get('RecipeIngredient-TOTAL_FORMS', 0))
 
-    # This try/except block is necessary as the drop down in the form uses the ID values of ingredients
-    # to display, as well as pass them. This means that if users use an existing ingredient from the menu,
-    # it will pass an ID. If they create a new ingredient on the spot, it will instead pass the name they created.
-    # If an ID already exists, continue through
-    try:
-        ingredientID = int(ingredientID)
-    # Otherwise if our input is a new string (I.E the key doesn't exist), create a new ingredient
-    except (ValueError, TypeError):
-        if ingredientID and ingredientID.strip():
-            # Call cleaning methods
-            ingredient = Ingredient.find_name(ingredientID)
-            print(f"CREATED NEW INGREDIENT: {ingredient}")
-            ingredientID = ingredient.id
-        else:
-            print("ERROR")
+        # This try/except block is necessary as the drop down in the form uses the ID values of ingredients
+        # to display, as well as pass them. This means that if users use an existing ingredient from the menu,
+        # it will pass an ID. If they create a new ingredient on the spot, it will instead pass the name they created.
+        # If an ID already exists, continue through
+        try:
+            ingredientID = int(ingredientID)
+        # Otherwise if our input is a new string (I.E the key doesn't exist), create a new ingredient
+        except (ValueError, TypeError):
+            if ingredientID and ingredientID.strip():
+                # Call cleaning methods
+                ingredient = Ingredient.find_name(ingredientID)
+                print(f"CREATED NEW INGREDIENT: {ingredient}")
+                ingredientID = ingredient.id
+            else:
+                print("ERROR")
 
-    form = IngredientFormSet().empty_form
+        form = IngredientFormSet().empty_form
 
-    form.initial = {
-        'ingredient': ingredientID,
-        'quantity': quantity,
-        'unit': unit,
-    }
+        form.initial = {
+            'ingredient': ingredientID,
+            'quantity': quantity,
+            'unit': unit,
+        }
 
-    form.prefix = f'RecipeIngredient-{total}'
+        form.prefix = f'RecipeIngredient-{total}'
 
-    form.data = {
-        f'{form.prefix}-ingredient': ingredientID,
-        f'{form.prefix}-quantity': quantity,
-        f'{form.prefix}-unit': unit,
-    }
+        form.data = {
+            f'{form.prefix}-ingredient': ingredientID,
+            f'{form.prefix}-quantity': quantity,
+            f'{form.prefix}-unit': unit,
+        }
 
-    context = {'form': form,
-               'total': total + 1,
-               'name': Ingredient.objects.filter(id=ingredientID).first()}
-    
-    return render(request, 'partials/form.html', context)
+        context = {'form': form,
+                'total': total + 1,
+                'name': Ingredient.objects.filter(id=ingredientID).first()}
+        
+        return render(request, 'partials/form.html', context)
 
 @login_required(login_url = 'users:login')
 def create(request):
