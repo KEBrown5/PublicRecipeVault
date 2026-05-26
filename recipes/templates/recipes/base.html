@@ -14,17 +14,18 @@
         <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> <!--Bootstrap-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
         <link rel="stylesheet"  href="{% static 'css/recipe.css' %}"> 
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Spectral|Rubik">
-              
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Spectral|Rubik">    
     </head>
     <body>
         <!-- Sidebar/header -->   
         <div class="container-fluid p-0">
-            <div class = "row d-flex">
-                <div class = "col-auto p-0">
-                    <div class = "sidebar sticky-top" id = "sidebar">
+            <div class = "row d-flex g-0">
+                <!-- Only visible on lg+ screens-->
+                <div class = "col-auto p-0 sidebar-col"> 
+                    <div class = "sidebar sticky-top" id = "sidebarWrapper">
                         <a id = "/home/" class="sidebar-item" href="{% url 'recipes:home' %}">
                             <i class = "fa-solid fa-house"></i>
                             <span>Home</span>
@@ -43,14 +44,22 @@
                         <a id = "/account/" class="sidebar-item" href="{% url 'recipes:account' %}">
                             <i class = "fa-solid fa-circle-user"></i>
                             <span>Account</span>
-                        </a>              
+                        </a>         
                     </div>
                 </div>
 
                 <div class = "col p-0">
                     <!-- Header -->
-                    <header class = "d-flex align-items-center justify-content-center font-h">                      
-                        <span>The Recipe Vault</span> 
+                    <header class = "row d-flex align-items-center font-h fs-3 g-0">            
+                        <div class = "col-2 text-start">
+                            <button type = "button" class = "btn d-lg-none ms-3"
+                                onclick = "document.getElementById('sidebarWrapper').classList.toggle('open')">
+                                <i class = "fa-solid fa-bars"></i>
+                            </button>
+                        </div>
+                        <div class = "col-8 text-center">
+                            <span>The Recipe Vault</span>
+                        </div>                               
                     </header>
 
                     <!-- Main content -->

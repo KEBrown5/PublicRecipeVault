@@ -15,7 +15,8 @@ class RecipeForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs = {'placeholder': 'Add title here'}),
             'content': forms.Textarea(attrs = {'rows': '6', 'placeholder': 'Add description here'}),
-            'servings': forms.NumberInput(attrs = {'placeholder': 'Add servings here', 'min': '0'})
+            'servings': forms.NumberInput(attrs = {'placeholder': 'Add servings here', 'min': '0'}),
+            'tags': forms.SelectMultiple(attrs = {'class': 'tagSelect'}),
             # 'prepTime': forms.NumberInput(attrs = {'placeholder': 'Minutes', 'min': '0'}),
             # 'cookTime': forms.NumberInput(attrs = {'placeholder': 'Minutes', 'min': '0'})
         }
@@ -65,5 +66,5 @@ class RecipeStepForm(forms.ModelForm):
         model = InstructionStep
         fields = ['text']
         widgets = {
-            'text': forms.Textarea(attrs = {'rows': '2', 'placeholder': 'Input step here', 'name': 'step_text'})
+            'text': forms.Textarea(attrs = {'rows': '2', 'placeholder': 'Input step here', 'name': 'step_text', 'class': 'stepTextInput'})
         }

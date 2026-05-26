@@ -24,10 +24,31 @@ h1, h2, h3, h4, h5, h6 {
     font-family: Spectral, serif;
 }
 
-.sidebar {
-    padding: 10px;
-    background-color: var(--lightGreen);
+.sidebar-col {
     min-height: 100vh;
+    background-color: var(--lightGreen);
+}
+
+/* Sidebar starts collapsed with a width of 0 */
+.sidebar {
+    background-color: var(--lightGreen);
+    overflow: hidden;
+    max-width: 0;
+    padding: 0;
+    transition: max-width 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+
+.sidebar.open {
+    max-width: 200px;
+    padding: 10px;
+}
+
+/* Queries screen width, and on larger screens set its width to 200px (basically open by default) */
+@media (min-width: 992px) {
+    .sidebar {
+        max-width: 200px;
+        padding: 10px;
+    }
 }
 
 .sidebar-item {
@@ -53,7 +74,6 @@ header {
     background: var(--lightGreen);
     height: 75px;
     min-height: 75px;
-    /* min-height: 100vh; */
 }
 
 .card {
@@ -71,4 +91,12 @@ header {
 
 .title-link:hover {
     text-decoration: underline;
+}
+
+.stepTextInput {
+    width: 100%;
+}
+
+.tagSelect {
+    width: 100%;
 }
