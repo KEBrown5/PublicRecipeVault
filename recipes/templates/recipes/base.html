@@ -23,9 +23,20 @@
         <!-- Sidebar/header -->   
         <div class="container-fluid p-0">
             <div class = "row d-flex g-0">
-                <!-- Only visible on lg+ screens-->
                 <div class = "col-auto p-0 sidebar-col"> 
                     <div class = "sidebar sticky-top" id = "sidebarWrapper">
+                        <!-- <form method = "GET" action = "{% url 'recipes:home' %}">
+                            <select name = "tag" class = "form-select">
+                                <option value = "">All tags</option>
+                                {% for tag in tags %}
+                                    <option value = "{{ tag.name }}" {% if tag.name == selectedTag %} selected {% endif %}>
+                                        {{ tag.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type = "submit">Sort</button>
+                        </form>              -->
+
                         <a id = "/home/" class="sidebar-item" href="{% url 'recipes:home' %}">
                             <i class = "fa-solid fa-house"></i>
                             <span>Home</span>
@@ -59,7 +70,10 @@
                         </div>
                         <div class = "col-8 text-center">
                             <span>The Recipe Vault</span>
-                        </div>                               
+                        </div>
+                        {% block searchbar %}
+                            
+                        {% endblock %}                             
                     </header>
 
                     <!-- Main content -->
