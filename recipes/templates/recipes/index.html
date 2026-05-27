@@ -1,5 +1,21 @@
 {% extends "recipes/base.html" %}
 
+{% block searchbar %}
+    <div class = "col-2 text-end">
+        <form method = "GET" action = "{% url 'recipes:home' %}" class = "d-flex align-items-center">
+            <select name = "tag" class = "form-select">
+                <option value = "">All tags</option>
+                {% for tag in tags %}
+                    <option value = "{{ tag.name }}" {% if tag.name == selectedTag %} selected {% endif %}>
+                        {{ tag.name }}
+                    </option>
+                {% endfor %}
+            </select>   
+            <button type = "submit" class = "mx-3">Sort</button>                        
+        </form>
+    </div>  
+{% endblock %}
+
 {% block content %}
     {% for recipe in recipes %}
         <div class = "card mb-3">
