@@ -19,13 +19,13 @@ def home(request):
     recipes = Recipes.objects.filter(author = request.user)
 
     if selectedTag:
-        posts = posts.annotate(
+        recipes = recipes.annotate(
             is_match = Max(Case(
                 When(tags__name = selectedTag, then = Value(1)),
                 default = Value(0),
                 output_field = IntegerField()
             ))
-        ).order_by('-is_match', '-created_at')
+        ).order_by('-is_match', '-createdAt')
     else:
         recipes.order_by('-createdAt')
 
